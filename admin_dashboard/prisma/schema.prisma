@@ -1,0 +1,61 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+generator dbml {
+  provider = "prisma-dbml-generator"
+}
+
+
+model User {
+  id                String              @id @default(auto()) @map("_id") @db.ObjectId
+  fullName          String
+  email             String              @unique
+  password          String
+  role              Role
+  locationId        String              @db.ObjectId
+  location          Location            @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  UserNotifications UserNotifications[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+}
+
+model Location {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  areaCode   String
+  users     User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Notifications {
+  id                String              @id @default(auto()) @map("_id") @db.ObjectId
+  message           String
+  UserNotifications UserNotifications[]
+  createdAt         DateTime?           @default(now())
+  updatedAt         DateTime?           @updatedAt
+}
+
+model UserNotifications {
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String        @db.ObjectId
+  notificationId String        @db.ObjectId
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notification   Notifications @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime?     @default(now())
+  updatedAt      DateTime?     @updatedAt
+}
+
+enum Role {
+  USER
+  OFFICER
+  ADMIN
+}
